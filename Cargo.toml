@@ -1,0 +1,6 @@
+[package]
+name = "rust-oauth2-admin-api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
