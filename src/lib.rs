@@ -1,71 +1,12 @@
+mod models;
+mod handlers;
+
+use models::client::*;
+use handlers::*;
 use rand::distributions::{Alphanumeric, DistString};
 use url::Url;
-use utoipa::{OpenApi, ToSchema};
 use uuid::Uuid;
 use worker::*;
-
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct Client {
-  pub client_id: String,
-  pub client_secret: String,
-  pub name: String,
-  pub redirect_uris: Vec<String>,
-  #[serde(default)]
-  pub access_token_validity: u64,
-  #[serde(default)]
-  pub refresh_token_validity: u64,
-  #[serde(default)]
-  pub disable_refresh_token: bool,
-  #[serde(default)]
-  pub refresh_refresh_token: bool,
-}
-
-impl Default for Client {
-  fn default() -> Self {
-    Self {
-      client_id: String::new(),
-      client_secret: String::new(),
-      name: String::new(),
-      redirect_uris: Vec::new(),
-      access_token_validity: 3600,
-      refresh_token_validity: 1209600,
-      disable_refresh_token: false,
-      refresh_refresh_token: true,
-    }
-  }
-}
-
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct CreateClientRequest {
-  pub name: String,
-  pub redirect_uris: Vec<String>,
-  pub access_token_validity: Option<u64>,
-  pub refresh_token_validity: Option<u64>,
-  pub disable_refresh_token: Option<bool>,
-  pub refresh_refresh_token: Option<bool>,
-}
-
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct UpdateClientRequest {
-  pub name: Option<String>,
-  pub redirect_uris: Option<Vec<String>>,
-  pub access_token_validity: Option<u64>,
-  pub refresh_token_validity: Option<u64>,
-  pub disable_refresh_token: Option<bool>,
-  pub refresh_refresh_token: Option<bool>,
-}
-
-#[derive(OpenApi)]
-#[openapi(
-  paths(),
-  components(schemas(Client, CreateClientRequest, UpdateClientRequest)),
-  tags(
-    (name = "Clients", description = "API endpoints for managing oauth2 clients")
-  )
-)]
-pub struct ApiDoc;
 
 #[event(fetch)]
 async fn fetch(req: Request, env: Env, _ctx: Context) -> Result<Response> {
@@ -206,10 +147,6 @@ async fn fetch(req: Request, env: Env, _ctx: Context) -> Result<Response> {
       }
 
       return Response::error("Bad Request", 400);
-    })
-    .get_async("/clients-openapi.json", |_req, _ctx| async move {
-      let openapi_json = ApiDoc::openapi().to_json().unwrap();
-      return Response::from_json(&openapi_json);
     })
     .run(req, env)
     .await;
